@@ -97,7 +97,7 @@ EXIT:
 # 
 	
 FUNCTION_SWAP:
-    add $sp, $sp, $a2		#Enlarge the size of the stack by the max word length
+    sub $sp, $sp, $a2		#Enlarge the size of the stack by the max word length
     
     add $t0, $zero, $a0		#Store the address of the first word in $t0
     add $t1, $zero, $a1		#Store the address of the second word in $t1
@@ -106,9 +106,9 @@ FUNCTION_SWAP:
 loop1:
     lbu $t2, 0($t0)		#Store the "i'th" byte of first word char in $t2		
     sb $sp, 0($t0)		#Store this byte in the stack
-    addi $sp, $sp, 1		#Increment the byte position in the word
-    addi $t0, $t0, 1		#Increment the byte position in the stack
-    addi $t3, $zero, 1		#Keep track of number of times incremented stack
+    addi $sp, $sp, 1		#Increment the byte position in the stack
+    addi $t0, $t0, 1		#Increment the byte position in the word
+    addi $t3, $t3, 1		#Keep track of number of times incremented stack
     bne $t2, $zero, loop1	#Keep looping until NULL char is reached
 
         
@@ -122,6 +122,18 @@ loop2:
     addi $t1, $t1, 1		#Increment the byte position in the second word
     bne $t2, $zero, loop2	#Keep looping until the NULL char is reached
     
+#add $sp, $sp, $t3		#Start at position in stack where you began
+add $t0, $zero, $a0		#Restore the address of the first word in $t0
+add $t1, $zero, $a1		#Restore the address of the second word in $t1
+sub $sp, $sp, $t3		#Start counting from beginning of stack
+
+#Copy the contents of the first string from the stack into the second string
+loop3:
+    lbu $t2, 0($sp)
+    sb $t2, 0($t1)
+    addi $sp, $sp, 1
+    addi $t1, $t1, 1
+    bne $t2, $zero, loop3
     
     
     jr $ra
