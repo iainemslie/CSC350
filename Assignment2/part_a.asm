@@ -101,5 +101,18 @@ loop:
 	beq $t2, $t3, loop	#Repeat loop if chars match
 
 null_reached:
-	sub $v0, $t2, $t3	
+	sub $t4, $t2, $t3	#Store the difference of word1 - word 2 in $t4
+	
+	blt $t4, $zero, set_minus_one
+	bgt $t4, $zero, set_positive_one
+	beq $t4, $zero, set_zero
+	
+set_minus_one:
+	addi $v0, $zero, -1
+	jr $ra
+set_positive_one:
+	addi $v0, $zero, 1
+	jr $ra
+set_zero:
+	addi $v0, $zero, 0				
    	jr $ra
