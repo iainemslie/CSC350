@@ -97,4 +97,31 @@ EXIT:
 # 
 	
 FUNCTION_SWAP:
+    add $sp, $sp, $a2		#Enlarge the size of the stack by the max word length
+    
+    add $t0, $zero, $a0		#Store the address of the first word in $t0
+    add $t1, $zero, $a1		#Store the address of the second word in $t1
+    
+#Store the first word in temporary stack space    
+loop1:
+    lbu $t2, 0($t0)		#Store the "i'th" byte of first word char in $t2		
+    sb $sp, 0($t0)		#Store this byte in the stack
+    addi $sp, $sp, 1		#Increment the byte position in the word
+    addi $t0, $t0, 1		#Increment the byte position in the stack
+    addi $t3, $zero, 1		#Keep track of number of times incremented stack
+    bne $t2, $zero, loop1	#Keep looping until NULL char is reached
+
+        
+add $t0, $zero, $a0		#Restore the address of the first word to $t0
+   
+#Copy the contents of the second string into the memory of the first string
+loop2:
+    lbu $t2, 0($t1)		#Store the "i'th" byte of second word char in $t2
+    sb $t2, 0($t0)		#Store the i'th byte of second word in i'th byte of first word
+    addi $t0, $t0, 1		#Increment the byte position in first word
+    addi $t1, $t1, 1		#Increment the byte position in the second word
+    bne $t2, $zero, loop2	#Keep looping until the NULL char is reached
+    
+    
+    
     jr $ra
