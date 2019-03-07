@@ -101,39 +101,74 @@ FUNCTION_SWAP:
     
     add $t0, $zero, $a0		#Store the address of the first word in $t0
     add $t1, $zero, $a1		#Store the address of the second word in $t1
-    
-#Store the first word in temporary stack space    
-loop1:
-    lbu $t2, 0($t0)		#Store the "i'th" byte of first word char in $t2		
-    sb $sp, 0($t0)		#Store this byte in the stack
-    addi $sp, $sp, 1		#Increment the byte position in the stack
-    addi $t0, $t0, 1		#Increment the byte position in the word
-    addi $t3, $t3, 1		#Keep track of number of times incremented stack
-    bne $t2, $zero, loop1	#Keep looping until NULL char is reached
 
-        
-add $t0, $zero, $a0		#Restore the address of the first word to $t0
-   
+    add $t3, $zero, $sp		#Save the address of the start of the stack
+    
+#Copy the contents of the first word to the stack
+loop1:
+    lbu $t2, 0($t0)		#Load the i'th byte of first word into $t2	
+    sb $t2, 0($sp)		#Store the i'th byte of first word to i'th byte of stack pointer
+    addi $t0, $t0, 1		#Increment the byte position in the first word
+    addi $sp, $sp, 1		#Increment the byte position in the stack
+    bne $t2, $zero, loop1
+ 
+add $t0, $zero, $a0		#Restore the address of the first word in $t0         
+                         
 #Copy the contents of the second string into the memory of the first string
 loop2:
-    lbu $t2, 0($t1)		#Store the "i'th" byte of second word char in $t2
+    lbu $t2, 0($t1)		#Load the "i'th" byte of second word char in $t2
     sb $t2, 0($t0)		#Store the i'th byte of second word in i'th byte of first word
     addi $t0, $t0, 1		#Increment the byte position in first word
     addi $t1, $t1, 1		#Increment the byte position in the second word
     bne $t2, $zero, loop2	#Keep looping until the NULL char is reached
     
-#add $sp, $sp, $t3		#Start at position in stack where you began
-add $t0, $zero, $a0		#Restore the address of the first word in $t0
+      
+add $sp, $zero, $t3		#Restore the starting position of the stack  
 add $t1, $zero, $a1		#Restore the address of the second word in $t1
-sub $sp, $sp, $t3		#Start counting from beginning of stack
+    
+#Copy the contents of the temporary stack area into the second string
+loop3:
+    lbu $t2, 0($sp)		#Load the i'th byte of temp area into $t2
+    sb $t2, 0($t1)		#Store value of $t2 into beginning of second word in $t1
+    addi $t1, $t1, 1		#Increment the byte position in second word
+    addi $sp, $sp, 1		#Increment the byte position in the stack
+    bne $t2, $zero, loop3
+
+
+    jr $ra
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Copy the contents of the first string from the stack into the second string
-loop3:
-    lbu $t2, 0($sp)
-    sb $t2, 0($t1)
-    addi $sp, $sp, 1
-    addi $t1, $t1, 1
-    bne $t2, $zero, loop3
+#loop3:
+    #lbu $t2, 0($sp)
+    #sb $t2, 0($t1)
+    #addi $sp, $sp, 1
+    #addi $t1, $t1, 1
+    #bne $t2, $zero, loop3
     
-    
-    jr $ra
+#Store the first word in temporary stack space    
+#loop1:
+    #lbu $t2, 0($t0)		#Store the "i'th" byte of first word char in $t2		
+    #sb $sp, 0($t0)		#Store this byte in the stack
+    #addi $sp, $sp, 1		#Increment the byte position in the stack
+    #addi $t0, $t0, 1		#Increment the byte position in the word
+    #addi $t3, $t3, 1		#Keep track of number of times incremented stack
+    #bne $t2, $zero, loop1	#Keep looping until NULL char is reached
+
+        
+#add $t0, $zero, $a0		#Restore the address of the first word to $t0s
