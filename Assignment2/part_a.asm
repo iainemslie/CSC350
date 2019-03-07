@@ -85,5 +85,18 @@ EXIT:
 #
 
 FUNCTION_STRCMP:
+	
+	add $t0, $a0, $zero	#Store the address of the first word in $t0
+	add $t1, $a1, $zero	#Store the address of the second word in $t1
+	
+	addi $t2, $zero, 1	#Create an increment by one counter in $t2
+	
+	addi $t4, $zero, 10	#Strings end with 0a - the newline char
+	
+loop:
+	lbu $t3, 0($t0)		#Load the char value into $t3
+	addi $t0, $t0, 1
+	bne $t3, $t4, loop	#Branch when this char is not the newline
+
 	li $v0, -122
    	jr $ra
