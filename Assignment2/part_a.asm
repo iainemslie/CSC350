@@ -86,32 +86,20 @@ EXIT:
 
 FUNCTION_STRCMP:
 	
-	add $t0, $a1, $zero	#Store the address of the first word in $t0
+	add $t0, $a0, $zero	#Store the address of the first word in $t0
 	add $t1, $a1, $zero	#Store the address of the second word in $t1
 	
 loop:
 	lbu $t2, 0($t0)		#Load the "i'th" byte of first word into $t2
 	lbu $t3, 0($t1)		#Load the "i'th" byte of second word into $t3
+	
 	addi $t0, $t0, 1	#Add 1 to the address stored in $t0
 	addi $t1, $t1, 1	#Add 1 to the address stored in $t1
 	
-	beq $t2, $zero, done	#Exit the loop if null character
-	beq $t3, $zero, done	#Exit the loop if null character
-	beq $t2, $t2, loop	#Repeat loop if chars match
-done:
-	
-	
-	#add $t0, $a0, $zero	#Store the address of the first word in $t0
-	#add $t1, $a1, $zero	#Store the address of the second word in $t1
-	
-	#addi $t2, $zero, 1	#Create an increment by one counter in $t2
-	
-	#addi $t4, $zero, 10	#Strings end with 0a - the newline char
-	
-#loop:
-	#lbu $t3, 0($t0)		#Load the char value into $t3
-	#addi $t0, $t0, 1	#Add one to the address in $t0
-	#bne $t3, $t4, loop	#Branch when this char is not the newline
+	beq $t2, $zero, null_reached	#Exit the loop if null character
+	beq $t3, $zero, null_reached	#Exit the loop if null character
+	beq $t2, $t3, loop	#Repeat loop if chars match
 
-	li $v0, -122
+null_reached:
+	sub $v0, $t2, $t3	
    	jr $ra
