@@ -179,6 +179,23 @@ FUNCTION_PARTITION:
 #
 
 FUNCTION_HOARE_QUICKSORT:
+    add $t0, $zero, $a1		#Copy the value of lo in $a1 into $t0
+    add $t1, $zero, $a2		#Copy the value of hi in $a2 into $t1 
+    
+    add $t3, $t0, $t1	# lo + hi stored in $t0
+    addi $t4, $zero, 2	# for dividing by two  
+    div $t3, $t4	# divide [(lo + hi) / 2]
+    
+    subi $t0, $t0, 1	# i := lo - 1
+    addi $t1, $t1, 1    # i := hi + 1
+    
+    addi $t7, $zero, 1
+    
+#forever_loop:
+    
+    
+    #bne $t7, $zero, forever_loop
+
     jr $ra
     
 
