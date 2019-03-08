@@ -180,3 +180,94 @@ FUNCTION_PARTITION:
 
 FUNCTION_HOARE_QUICKSORT:
     jr $ra
+    
+
+    
+            
+#
+# Solution for FUNCTION_STRCMP
+#
+# $a0 contains the address of the first string
+# $a1 contains the address of the second string
+# $v0 will contain the result of the function.
+#   
+FUNCTION_STRCMP:
+	add $t0, $a0, $zero	#Store the address of the first word in $t0
+	add $t1, $a1, $zero	#Store the address of the second word in $t1
+	
+loop:
+	lbu $t2, 0($t0)		#Load the "i'th" byte of first word into $t2
+	lbu $t3, 0($t1)		#Load the "i'th" byte of second word into $t3
+	
+	addi $t0, $t0, 1	#Add 1 to the address stored in $t0
+	addi $t1, $t1, 1	#Add 1 to the address stored in $t1
+	
+	beq $t2, $zero, null_reached	#Exit the loop if null character
+	beq $t3, $zero, null_reached	#Exit the loop if null character
+	beq $t2, $t3, loop	#Repeat loop if chars match
+
+null_reached:
+	sub $t4, $t2, $t3	#Store the difference of word1 - word 2 in $t4
+	
+	blt $t4, $zero, set_minus_one
+	bgt $t4, $zero, set_positive_one
+	beq $t4, $zero, set_zero
+	
+set_minus_one:
+	addi $v0, $zero, -1
+	jr $ra
+set_positive_one:
+	addi $v0, $zero, 1
+	jr $ra
+set_zero:
+	addi $v0, $zero, 0				
+   	jr $ra
+   	
+#
+# Solution for FUNCTION_SWAP
+#
+# $a0 contains the address of the first string array
+# $a1 contains the address of the second string array
+# $a2 contains the maximum length of the arrays
+# 
+	
+FUNCTION_SWAP:
+    sub $sp, $sp, $a2		#Enlarge the size of the stack by the max word length
+    
+    add $t0, $zero, $a0		#Store the address of the first word in $t0
+    add $t1, $zero, $a1		#Store the address of the second word in $t1
+
+    add $t3, $zero, $sp		#Save the address of the start of the stack
+    
+#Copy the contents of the first word to the stack
+loop1:
+    lbu $t2, 0($t0)		#Load the i'th byte of first word into $t2	
+    sb $t2, 0($sp)		#Store the i'th byte of first word to i'th byte of stack pointer
+    addi $t0, $t0, 1		#Increment the byte position in the first word
+    addi $sp, $sp, 1		#Increment the byte position in the stack
+    bne $t2, $zero, loop1
+ 
+add $t0, $zero, $a0		#Restore the address of the first word in $t0         
+                         
+#Copy the contents of the second string into the memory of the first string
+loop2:
+    lbu $t2, 0($t1)		#Load the "i'th" byte of second word char in $t2
+    sb $t2, 0($t0)		#Store the i'th byte of second word in i'th byte of first word
+    addi $t0, $t0, 1		#Increment the byte position in first word
+    addi $t1, $t1, 1		#Increment the byte position in the second word
+    bne $t2, $zero, loop2	#Keep looping until the NULL char is reached
+      
+add $sp, $zero, $t3		#Restore the starting position of the stack  
+add $t1, $zero, $a1		#Restore the address of the second word in $t1
+    
+#Copy the contents of the temporary stack area into the second string
+loop3:
+    lbu $t2, 0($sp)		#Load the i'th byte of temp area into $t2
+    sb $t2, 0($t1)		#Store value of $t2 into beginning of second word in $t1
+    addi $t1, $t1, 1		#Increment the byte position in second word
+    addi $sp, $sp, 1		#Increment the byte position in the stack
+    bne $t2, $zero, loop3
+
+add $sp, $zero, $t3		#Restore the starting position of the stack 
+
+    jr $ra
