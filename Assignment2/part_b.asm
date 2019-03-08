@@ -136,39 +136,3 @@ loop3:
 
 
     jr $ra
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Copy the contents of the first string from the stack into the second string
-#loop3:
-    #lbu $t2, 0($sp)
-    #sb $t2, 0($t1)
-    #addi $sp, $sp, 1
-    #addi $t1, $t1, 1
-    #bne $t2, $zero, loop3
-    
-#Store the first word in temporary stack space    
-#loop1:
-    #lbu $t2, 0($t0)		#Store the "i'th" byte of first word char in $t2		
-    #sb $sp, 0($t0)		#Store this byte in the stack
-    #addi $sp, $sp, 1		#Increment the byte position in the stack
-    #addi $t0, $t0, 1		#Increment the byte position in the word
-    #addi $t3, $t3, 1		#Keep track of number of times incremented stack
-    #bne $t2, $zero, loop1	#Keep looping until NULL char is reached
-
-        
-#add $t0, $zero, $a0		#Restore the address of the first word to $t0s
