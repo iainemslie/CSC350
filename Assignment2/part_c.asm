@@ -191,10 +191,16 @@ FUNCTION_HOARE_QUICKSORT:
     
     addi $t7, $zero, 1
     
-#forever_loop:
+forever_loop:
+    
+    do_while1:
+      addi $t0, $t0, 1
+    
+    do_while2:
+      subi $t1, $t1, 1
     
     
-    #bne $t7, $zero, forever_loop
+    bne $t7, $zero, forever_loop
 
     jr $ra
     
