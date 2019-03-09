@@ -97,7 +97,13 @@ EXIT:
 # 
 	
 FUNCTION_SWAP:
-    sub $sp, $sp, $a2		#Enlarge the size of the stack by the max word length
+    addi $sp, $sp, -20		# Grow the stack
+    sw $ra, 16($sp)		# Store the return address
+    sw $t0, 12($sp)		# push $t0
+    sw $t1, 8($sp)		# push $t1
+    sw $t2, 4($sp)		# push $t2
+    sw $t3, 0($sp)		# push $t3
+    sub $sp, $sp, $a2		# Enlarge the size of the stack by the max word length
     
     add $t0, $zero, $a0		#Store the address of the first word in $t0
     add $t1, $zero, $a1		#Store the address of the second word in $t1
@@ -121,8 +127,7 @@ loop2:
     addi $t0, $t0, 1		#Increment the byte position in first word
     addi $t1, $t1, 1		#Increment the byte position in the second word
     bne $t2, $zero, loop2	#Keep looping until the NULL char is reached
-    
-      
+        
 add $sp, $zero, $t3		#Restore the starting position of the stack  
 add $t1, $zero, $a1		#Restore the address of the second word in $t1
     
@@ -134,5 +139,13 @@ loop3:
     addi $sp, $sp, 1		#Increment the byte position in the stack
     bne $t2, $zero, loop3
 
+    add $sp, $zero, $t3		#Restore the starting position of the stack (byte offset)
 
+    add $sp, $sp, $a2		# Restore the size of the stack by the max word length
+    lw $t3, 0($sp)		# pop $t3
+    lw $t2, 4($sp)		# pop $t2
+    lw $t1, 8($sp)		# pop $t1
+    lw $t0, 12($sp)		# pop $t0
+    lw $ra, 16($sp)		# pop $ra
+    addi $sp, $sp, 20		# Restore stack
     jr $ra
