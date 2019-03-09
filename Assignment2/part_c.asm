@@ -255,21 +255,9 @@ FUNCTION_HOARE_QUICKSORT:
     sw $t1, 8($sp)
     sw $t2, 4($sp)
     sw $v0, 0($sp)
-    
-    add $t0, $zero, $a1			# $t0 gets lo
-    add $t1, $zero, $a2			# $t1 gets hi
-    bge $t0, $t1, done_quicksort	# if lo < then
-    
+
     jal FUNCTION_PARTITION	    
-    add $t2, $zero, $v0			# p := partition(A, lo, hi)
-    
-    add $a1, $zero, $t0			# pass lo
-    add $a2, $zero, $t2			# pass p
-    jal FUNCTION_HOARE_QUICKSORT
-    
-    addi $a1, $t2, 1		# pass p + 1
-    add $a2, $zero, $t1
-    jal FUNCTION_HOARE_QUICKSORT
+
 
 done_quicksort:
     lw $v0, 0($sp)	# Pop values from the stack
