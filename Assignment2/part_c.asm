@@ -178,11 +178,11 @@ FUNCTION_PARTITION:
     sw $t3, 4($sp)
     sw $t4, 0($sp)
     
+    
     # pivot := A[(lo + hi) / 2]
     add $t0, $a1, $a2		# $t0 = lo + hi
     addi $t1, $zero, 2		# Let $t1 be 2
-    div $t0, $t1		# (lo + hi) / 2
-    mflo $t0			# $t0 = (lo + hi) / 2
+    div $t0, $t0, $t1		# (lo + hi) / 2
     mul $t0, $t0, MAX_WORD_LEN 	# A[(lo + hi) / 2]
     add $t0, $t0, $a0		# pivot : = A[(lo + hi) / 2]  #$t0 contains address of pivot
     
@@ -246,26 +246,41 @@ forever_loop:
 #
 
 FUNCTION_HOARE_QUICKSORT:
-    addi $sp, $sp, -28	# Push values to the stack
-    sw $ra, 24($sp)
-    sw $a0, 20($sp)
-    sw $a1, 16($sp)
-    sw $a2, 12($sp)
-    sw $t0, 8($sp)
-    sw $t1, 4($sp)
-    sw $t2, 0($sp)
+    addi $sp, $sp, -32	# Push values to the stack
+    sw $ra, 28($sp)
+    sw $a0, 24($sp)
+    sw $a1, 20($sp)
+    sw $a2, 16($sp)
+    sw $t0, 12($sp)
+    sw $t1, 8($sp)
+    sw $t2, 4($sp)
+    sw $v0, 0($sp)
     
-    jal FUNCTION_PARTITION	
+    add $t0, $zero, $a1			# $t0 gets lo
+    add $t1, $zero, $a2			# $t1 gets hi
+    bge $t0, $t1, done_quicksort	# if lo < then
+    
+    jal FUNCTION_PARTITION	    
+    add $t2, $zero, $v0			# p := partition(A, lo, hi)
+    
+    add $a1, $zero, $t0			# pass lo
+    add $a2, $zero, $t2			# pass p
+    jal FUNCTION_HOARE_QUICKSORT
+    
+    addi $a1, $t2, 1		# pass p + 1
+    add $a2, $zero, $t1
+    jal FUNCTION_HOARE_QUICKSORT
 
 done_quicksort:
-    lw $t2, 0($sp)	# Pop values fromthe stack
-    lw $t1, 4($sp) 
-    lw $t0, 8($sp)
-    lw $a2, 12($sp)
-    lw $a1, 16($sp)
-    lw $a0, 20($sp)
-    lw $ra, 24($sp)
-    addi $sp, $sp, 28
+    lw $v0, 0($sp)	# Pop values from the stack
+    lw $t2, 4($sp)	
+    lw $t1, 8($sp) 
+    lw $t0, 12($sp)
+    lw $a2, 16($sp)
+    lw $a1, 20($sp)
+    lw $a0, 24($sp)
+    lw $ra, 28($sp)
+    addi $sp, $sp, 32
     jr $ra
 
     
