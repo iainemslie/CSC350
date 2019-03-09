@@ -85,7 +85,13 @@ EXIT:
 #
 
 FUNCTION_STRCMP:
-	
+	addi $sp, $sp, -20 	# Increase the stack size
+	sw $t0, 16($sp)		# push $t0
+	sw $t1, 12($sp)		# push $t1
+	sw $t2, 8($sp)		# push $t2
+	sw $t3, 4($sp)		# push $t3
+	sw $t4, 0($sp)		# push $t4
+
 	add $t0, $a0, $zero	#Store the address of the first word in $t0
 	add $t1, $a1, $zero	#Store the address of the second word in $t1
 	
@@ -108,11 +114,29 @@ null_reached:
 	beq $t4, $zero, set_zero
 	
 set_minus_one:
-	addi $v0, $zero, -1
+	lw $t4, 0($sp)		# pop $t4
+	lw $t3, 4($sp)		# pop $t3
+	lw $t2, 8($sp)		# pop $t2
+	lw $t1, 4($sp)		# pop $t1
+	lw $t0, 0($sp)		# pop $t0
+	addi $sp, $sp, 20	# Restore the stack
+	addi $v0, $zero, -1	# Function return value
 	jr $ra
 set_positive_one:
-	addi $v0, $zero, 1
+	lw $t4, 0($sp)		# pop $t4
+	lw $t3, 4($sp)		# pop $t3
+	lw $t2, 8($sp)		# pop $t2
+	lw $t1, 4($sp)		# pop $t1
+	lw $t0, 0($sp)		# pop $t0
+	addi $sp, $sp, 20	# Restore the stack
+	addi $v0, $zero, 1	# Function return value
 	jr $ra
 set_zero:
-	addi $v0, $zero, 0				
-   	jr $ra
+	lw $t4, 0($sp)		# pop $t4
+	lw $t3, 4($sp)		# pop $t3
+	lw $t2, 8($sp)		# pop $t2
+	lw $t1, 4($sp)		# pop $t1
+	lw $t0, 0($sp)		# pop $t0
+	addi $sp, $sp, 20	# Restore the stack
+	addi $v0, $zero, 0	# Function return value				
+   	jr $ra	
