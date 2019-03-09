@@ -166,16 +166,17 @@ EXIT_FPW:
 #
 
 FUNCTION_PARTITION:
-    addi $sp, $sp, -36 	# Increase the size of the stack and push values
-    sw $ra, 32($sp)
-    sw $s0, 28($sp)
-    sw $a0, 24($sp)
-    sw $a1, 20($sp)
-    sw $a2, 16($sp)
-    sw $t0, 12($sp)
-    sw $t1, 8($sp)
-    sw $t2, 4($sp)
-    sw $t3, 0($sp)
+    addi $sp, $sp, -40 	# Increase the size of the stack and push values
+    sw $ra, 36($sp)
+    sw $s0, 32($sp)
+    sw $a0, 28($sp)
+    sw $a1, 24($sp)
+    sw $a2, 20($sp)
+    sw $t0, 16($sp)
+    sw $t1, 12($sp)
+    sw $t2, 8($sp)
+    sw $t3, 4($sp)
+    sw $t4, 0($sp)
     
     # pivot := A[(lo + hi) / 2]
     add $t0, $a1, $a2		# $t0 = lo + hi
@@ -202,8 +203,8 @@ forever_loop:
     	
     while_loop2:
     	addi $t2, $t2, -1		# j = j - 1
-    	mul $t3, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
-    	add $a0, $t3, $s0		# Pass the offset address of A[j] as argument
+    	mul $t4, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
+    	add $a0, $t4, $s0		# Pass the offset address of A[j] as argument
     	add $a1, $t0, $zero		# Pass the offset address of A[pivot] as argument
         jal FUNCTION_STRCMP
         bgt $v0, $zero, while_loop2	# A[j] > pivot
@@ -212,8 +213,8 @@ forever_loop:
 
     mul $t3, $t1, MAX_WORD_LEN	# $t3 contains offset address of A[i]
     add $a0, $t3, $s0		# Pass the offset address of A[i] as argument
-    mul $t3, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
-    add $a0, $t3, $s0		# Pass the offset address of A[j] as argument
+    mul $t4, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
+    add $a1, $t4, $s0		# Pass the offset address of A[j] as argument
     addi $a3, $zero, MAX_WORD_LEN
     jal FUNCTION_SWAP	# swap A[i] with A[j]
     
@@ -221,16 +222,17 @@ forever_loop:
         
  exit:   
     add $v0, $zero, $t2
-    lw $t3, 0($sp)
-    lw $t2, 4($sp)
-    lw $t1, 8($sp)
-    lw $t0, 12($sp)
-    lw $a2, 16($sp)
-    lw $a1, 20($sp)
-    lw $a0, 24($sp)
-    lw $s0, 28($sp)
-    lw $ra, 32($sp)
-    addi $sp, $sp, 36	# Decrease the stack and pop values
+    lw $t4, 0($sp)
+    lw $t3, 4($sp)
+    lw $t2, 8($sp)
+    lw $t1, 12($sp)
+    lw $t0, 16($sp)
+    lw $a2, 20($sp)
+    lw $a1, 24($sp)
+    lw $a0, 28($sp)
+    lw $s0, 32($sp)
+    lw $ra, 36($sp)
+    addi $sp, $sp, 40	# Decrease the stack and pop values
     jr $ra
 	
 	
@@ -267,7 +269,7 @@ done_quicksort:
     jr $ra
 
     
-            
+
 #
 # Solution for FUNCTION_STRCMP must appear below.
 #
