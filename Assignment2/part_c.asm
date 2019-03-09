@@ -253,25 +253,7 @@ FUNCTION_HOARE_QUICKSORT:
     sw $t1, 4($sp)
     sw $t2, 0($sp)
     
-    add $t0, $zero, $a1		# $t0 contains lo
-    add $t1, $zero, $a2		# t1 contains hi
-    
-    bge $t0, $t1, done_quicksort	# If lo < hi then
-    
-    	# $a0 contains the starting address of the array of strings,
-	#    where each string occupies up to MAX_WORD_LEN chars.
-	# $a1 contains the starting index for the partition
-	# $a2 contains the ending index for the partition
-   
     jal FUNCTION_PARTITION	
-    add $t3, $zero, $v0			# p : = partition(A, lo, hi)
-    
-    add $a2, $zero, $t3			# $a2 = p
-    jal FUNCTION_HOARE_QUICKSORT
-
-    addi $a1, $t3, 1			# start of sort is p + 1
-    add  $a2, $zero, $t1
-    jal FUNCTION_HOARE_QUICKSORT      
 
 done_quicksort:
     lw $t2, 0($sp)	# Pop values fromthe stack
