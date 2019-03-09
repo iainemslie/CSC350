@@ -166,57 +166,71 @@ EXIT_FPW:
 #
 
 FUNCTION_PARTITION:
-    addi $sp, $sp, -12		#Create stack space and save values
-    sw $ra, 8($sp)
-    sw $a1, 4($sp)
-    sw $a2, 0($sp)
+    addi $sp, $sp, -36 	# Increase the size of the stack and push values
+    sw $ra, 32($sp)
+    sw $s0, 28($sp)
+    sw $a0, 24($sp)
+    sw $a1, 20($sp)
+    sw $a2, 16($sp)
+    sw $t0, 12($sp)
+    sw $t1, 8($sp)
+    sw $t2, 4($sp)
+    sw $t3, 0($sp)
     
-    add $s0, $a0, $zero		#Save the starting address of the array of strings
+    # pivot := A[(lo + hi) / 2]
+    add $t0, $a1, $a2		# $t0 = lo + hi
+    addi $t1, $zero, 2		# Let $t1 be 2
+    div $t0, $t1		# (lo + hi) / 2
+    mflo $t0			# $t0 = (lo + hi) / 2
+    mul $t0, $t0, MAX_WORD_LEN 	# A[(lo + hi) / 2]
+    add $t0, $t0, $a0		# pivot : = A[(lo + hi) / 2]  #$t0 contains address of pivot
     
-    # pivot := A[(lo + hi) / 2]	
-    add $t0, $a1, $a2		# lo + hi
-    addi $t1, $zero, 2		# $t1 = 2
-    div $t0, $t1		# (lo + hi) / 2 			
-    mflo $t0			# 			$t0 = pivot
+    add $s0, $zero, $a0		# save the base address of the array into $s0
     
-    addi $t1, $a1, -1		# i := lo - 1	      # $t1 = i 
-    addi $t2, $a2, 1		# j := hi + 1	      # $t2 = j
+    addi $t1, $a1, -1		# i = lo - 1
+    addi $t2, $a2, 1		# j = hi + 1
     
-forever_loop: 
-    do_while1:
- 	addi $t1, $t1, 1		# i := i + 1
-    	mul $a0, $t1, MAX_WORD_LEN	# Multiply by MAX_WORD_LEN for each index
-    	add $a0, $a0, $s0		# Use the start plus the offset
-    	mul $a1, $t0, MAX_WORD_LEN	# Multiply by MAX_WORD_LEN for pivot
-    	add $a1, $a1, $s0		# Use the start plus the offset
+forever_loop:
+
+    while_loop1:
+    	addi $t1, $t1, 1		# i = i + 1
+    	mul $t3, $t1, MAX_WORD_LEN	# $t3 contains offset address of A[i]
+        add $a0, $t3, $s0		# Pass the offset address of A[i] as argument
+        add $a1, $t0, $zero		# Pass the offset address of A[pivot] as argument
     	jal FUNCTION_STRCMP
-    	blt $v0, $zero, do_while1
- 	
-    do_while2:
-    	addi $t2, $t2, -1		# j := j - 1
-    	mul $a0, $t2, MAX_WORD_LEN	#Multiply by MAX_WORD_LEN for each index
-    	add $a0, $a0, $s0		# Use the start plus the offset
-    	mul $a1, $t0, MAX_WORD_LEN
-    	add $a0, $a0, $s0		# Use the start plus the offset
-    	jal FUNCTION_STRCMP
-    	bgt $v0, $zero, do_while2
-    	   	
-    bge $t2, $t1, exit
-    
-    mul $a0, $t1, MAX_WORD_LEN
-    mul $a1, $t2, MAX_WORD_LEN	
-    addi $a2, $zero, MAX_WORD_LEN
-    jal FUNCTION_SWAP
+    	blt $v0, $zero, while_loop1	# A[i] < pivot 
+    	
+    while_loop2:
+    	addi $t2, $t2, -1		# j = j - 1
+    	mul $t3, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
+    	add $a0, $t3, $s0		# Pass the offset address of A[j] as argument
+    	add $a1, $t0, $zero		# Pass the offset address of A[pivot] as argument
+        jal FUNCTION_STRCMP
+        bgt $v0, $zero, while_loop2	# A[j] > pivot
+        
+    bge $t1, $t2, exit	# if i >= j
+
+    mul $t3, $t1, MAX_WORD_LEN	# $t3 contains offset address of A[i]
+    add $a0, $t3, $s0		# Pass the offset address of A[i] as argument
+    mul $t3, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
+    add $a0, $t3, $s0		# Pass the offset address of A[j] as argument
+    addi $a3, $zero, MAX_WORD_LEN
+    jal FUNCTION_SWAP	# swap A[i] with A[j]
     
     j forever_loop
-    
-# Exit the function
-exit:
-    add $v0, $zero, $t2 	#Return j            
-    lw $a2, 0($sp)
-    lw $a1, 4($sp)
-    lw $sp, 8($sp)
-    addi $sp, $sp, 12		#Restore values and fold up the stack
+        
+ exit:   
+    add $v0, $zero, $t2
+    lw $t3, 0($sp)
+    lw $t2, 4($sp)
+    lw $t1, 8($sp)
+    lw $t0, 12($sp)
+    lw $a2, 16($sp)
+    lw $a1, 20($sp)
+    lw $a0, 24($sp)
+    lw $s0, 28($sp)
+    lw $ra, 32($sp)
+    addi $sp, $sp, 36	# Decrease the stack and pop values
     jr $ra
 	
 	
@@ -230,27 +244,65 @@ exit:
 #
 
 FUNCTION_HOARE_QUICKSORT:
+    addi $sp, $sp, -28	# Push values to the stack
+    sw $ra, 24($sp)
+    sw $a0, 20($sp)
+    sw $a1, 16($sp)
+    sw $a2, 12($sp)
+    sw $t0, 8($sp)
+    sw $t1, 4($sp)
+    sw $t2, 0($sp)
+    
+    add $t0, $zero, $a1		# $t0 contains lo
+    add $t1, $zero, $a2		# t1 contains hi
+    
+    bge $t0, $t1, done_quicksort	# If lo < hi then
+    
+    	# $a0 contains the starting address of the array of strings,
+	#    where each string occupies up to MAX_WORD_LEN chars.
+	# $a1 contains the starting index for the partition
+	# $a2 contains the ending index for the partition
+   
+    jal FUNCTION_PARTITION	
+    add $t3, $zero, $v0			# p : = partition(A, lo, hi)
+    
+    add $a2, $zero, $t3			# $a2 = p
+    jal FUNCTION_HOARE_QUICKSORT
 
-    jal FUNCTION_PARTITION
+    addi $a1, $t3, 1			# start of sort is p + 1
+    add  $a2, $zero, $t1
+    jal FUNCTION_HOARE_QUICKSORT      
+
+done_quicksort:
+    lw $t2, 0($sp)	# Pop values fromthe stack
+    lw $t1, 4($sp) 
+    lw $t0, 8($sp)
+    lw $a2, 12($sp)
+    lw $a1, 16($sp)
+    lw $a0, 20($sp)
+    lw $ra, 24($sp)
+    addi $sp, $sp, 28
     jr $ra
 
     
             
 #
-# Solution for FUNCTION_STRCMP
+# Solution for FUNCTION_STRCMP must appear below.
 #
 # $a0 contains the address of the first string
 # $a1 contains the address of the second string
 # $v0 will contain the result of the function.
-#   
+#
+
 FUNCTION_STRCMP:
-	addi $sp, $sp, -20		#Create stack space and save values
-    	sw $t0, 16($sp)
-    	sw $t1, 12($sp)
-    	sw $t2, 8($sp)
-    	sw $t3, 4($sp)
-    	sw $t4, 0($sp)
-    	
+	addi $sp, $sp, -24 	# Increase the stack size
+	sw $ra, 20($sp)		# push return address
+	sw $t0, 16($sp)		# push $t0
+	sw $t1, 12($sp)		# push $t1
+	sw $t2, 8($sp)		# push $t2
+	sw $t3, 4($sp)		# push $t3
+	sw $t4, 0($sp)		# push $t4
+
 	add $t0, $a0, $zero	#Store the address of the first word in $t0
 	add $t1, $a1, $zero	#Store the address of the second word in $t1
 	
@@ -273,33 +325,37 @@ null_reached:
 	beq $t4, $zero, set_zero
 	
 set_minus_one:
-	addi $v0, $zero, -1      
-    	lw $t4, 0($sp)
-    	lw $t3, 4($sp)
-    	lw $t2, 8($sp)
-    	lw $t1, 12($sp)
-    	lw $t0, 16($sp)
-    	addi $sp, $sp, 20		#Restore values and fold up the stack
+	lw $t4, 0($sp)		# pop $t4
+	lw $t3, 4($sp)		# pop $t3
+	lw $t2, 8($sp)		# pop $t2
+	lw $t1, 12($sp)		# pop $t1
+	lw $t0, 16($sp)		# pop $t0
+	lw $ra, 20($sp)		# pop $ra
+	addi $sp, $sp, 24	# Restore the stack
+	addi $v0, $zero, -1	# Function return value
 	jr $ra
 set_positive_one:
-	addi $v0, $zero, 1
-	lw $t4, 0($sp)
-    	lw $t3, 4($sp)
-    	lw $t2, 8($sp)
-    	lw $t1, 12($sp)
-    	lw $t0, 16($sp)
-    	addi $sp, $sp, 20		#Restore values and fold up the stack
+	lw $t4, 0($sp)		# pop $t4
+	lw $t3, 4($sp)		# pop $t3
+	lw $t2, 8($sp)		# pop $t2
+	lw $t1, 12($sp)		# pop $t1
+	lw $t0, 16($sp)		# pop $t0
+	lw $ra, 20($sp)		# pop $ra
+	addi $sp, $sp, 24	# Restore the stack
+	addi $v0, $zero, 1	# Function return value
 	jr $ra
 set_zero:
-	addi $v0, $zero, 0
-	lw $t4, 0($sp)
-    	lw $t3, 4($sp)
-    	lw $t2, 8($sp)
-    	lw $t1, 12($sp)
-    	lw $t0, 16($sp)
-    	addi $sp, $sp, 20		#Restore values and fold up the stack				
-   	jr $ra
-   	
+	lw $t4, 0($sp)		# pop $t4
+	lw $t3, 4($sp)		# pop $t3
+	lw $t2, 8($sp)		# pop $t2
+	lw $t1, 12($sp)		# pop $t1
+	lw $t0, 16($sp)		# pop $t0
+	lw $ra, 20($sp)		# pop $ra
+	addi $sp, $sp, 24	# Restore the stack
+	addi $v0, $zero, 0	# Function return value				
+   	jr $ra	
+
+  	   	
 #
 # Solution for FUNCTION_SWAP
 #
@@ -309,7 +365,13 @@ set_zero:
 # 
 	
 FUNCTION_SWAP:
-    sub $sp, $sp, $a2		#Enlarge the size of the stack by the max word length
+    addi $sp, $sp, -20		# Grow the stack
+    sw $ra, 16($sp)		# Store the return address
+    sw $t0, 12($sp)		# push $t0
+    sw $t1, 8($sp)		# push $t1
+    sw $t2, 4($sp)		# push $t2
+    sw $t3, 0($sp)		# push $t3
+    sub $sp, $sp, $a2		# Enlarge the size of the stack by the max word length
     
     add $t0, $zero, $a0		#Store the address of the first word in $t0
     add $t1, $zero, $a1		#Store the address of the second word in $t1
@@ -333,7 +395,7 @@ loop2:
     addi $t0, $t0, 1		#Increment the byte position in first word
     addi $t1, $t1, 1		#Increment the byte position in the second word
     bne $t2, $zero, loop2	#Keep looping until the NULL char is reached
-      
+        
 add $sp, $zero, $t3		#Restore the starting position of the stack  
 add $t1, $zero, $a1		#Restore the address of the second word in $t1
     
@@ -345,6 +407,13 @@ loop3:
     addi $sp, $sp, 1		#Increment the byte position in the stack
     bne $t2, $zero, loop3
 
-add $sp, $zero, $t3		#Restore the starting position of the stack 
+    add $sp, $zero, $t3		#Restore the starting position of the stack (byte offset)
 
+    add $sp, $sp, $a2		# Restore the size of the stack by the max word length
+    lw $t3, 0($sp)		# pop $t3
+    lw $t2, 4($sp)		# pop $t2
+    lw $t1, 8($sp)		# pop $t1
+    lw $t0, 12($sp)		# pop $t0
+    lw $ra, 16($sp)		# pop $ra
+    addi $sp, $sp, 20		# Restore stack
     jr $ra
