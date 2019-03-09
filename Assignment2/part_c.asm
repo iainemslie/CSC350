@@ -166,6 +166,57 @@ EXIT_FPW:
 #
 
 FUNCTION_PARTITION:
+    addi $sp, $sp, -12		#Create stack space and save values
+    sw $ra, 8($sp)
+    sw $a1, 4($sp)
+    sw $a2, 0($sp)
+    
+    add $s0, $a0, $zero		#Save the starting address of the array of strings
+    
+    # pivot := A[(lo + hi) / 2]	
+    add $t0, $a1, $a2		# lo + hi
+    addi $t1, $zero, 2		# $t1 = 2
+    div $t0, $t1		# (lo + hi) / 2 			
+    mflo $t0			# 			$t0 = pivot
+    
+    addi $t1, $a1, -1		# i := lo - 1	      # $t1 = i 
+    addi $t2, $a2, 1		# j := hi + 1	      # $t2 = j
+    
+forever_loop: 
+    do_while1:
+ 	addi $t1, $t1, 1		# i := i + 1
+    	mul $a0, $t1, MAX_WORD_LEN	# Multiply by MAX_WORD_LEN for each index
+    	add $a0, $a0, $s0		# Use the start plus the offset
+    	mul $a1, $t0, MAX_WORD_LEN	# Multiply by MAX_WORD_LEN for pivot
+    	add $a1, $a1, $s0		# Use the start plus the offset
+    	jal FUNCTION_STRCMP
+    	blt $v0, $zero, do_while1
+ 	
+    do_while2:
+    	addi $t2, $t2, -1		# j := j - 1
+    	mul $a0, $t2, MAX_WORD_LEN	#Multiply by MAX_WORD_LEN for each index
+    	add $a0, $a0, $s0		# Use the start plus the offset
+    	mul $a1, $t0, MAX_WORD_LEN
+    	add $a0, $a0, $s0		# Use the start plus the offset
+    	jal FUNCTION_STRCMP
+    	bgt $v0, $zero, do_while2
+    	   	
+    bge $t2, $t1, exit
+    
+    mul $a0, $t1, MAX_WORD_LEN
+    mul $a1, $t2, MAX_WORD_LEN	
+    addi $a2, $zero, MAX_WORD_LEN
+    jal FUNCTION_SWAP
+    
+    j forever_loop
+    
+# Exit the function
+exit:
+    add $v0, $zero, $t2 	#Return j            
+    lw $a2, 0($sp)
+    lw $a1, 4($sp)
+    lw $sp, 8($sp)
+    addi $sp, $sp, 12		#Restore values and fold up the stack
     jr $ra
 	
 	
@@ -179,31 +230,9 @@ FUNCTION_PARTITION:
 #
 
 FUNCTION_HOARE_QUICKSORT:
-    add $t0, $zero, $a1		#Copy the value of lo in $a1 into $t0
-    add $t1, $zero, $a2		#Copy the value of hi in $a2 into $t1 
-    
-    add $t3, $t0, $t1	# lo + hi stored in $t0
-    addi $t4, $zero, 2	# for dividing by two  
-    div $t3, $t4	# divide [(lo + hi) / 2]
-    
-    subi $t0, $t0, 1	# i := lo - 1
-    addi $t1, $t1, 1    # i := hi + 1
-    
-    addi $t7, $zero, 1
-    
-forever_loop:
-    
-    do_while1:
-      addi $t0, $t0, 1
-    
-    do_while2:
-      subi $t1, $t1, 1
-    
-    
-    bne $t7, $zero, forever_loop
 
+    jal FUNCTION_PARTITION
     jr $ra
-    
 
     
             
@@ -215,6 +244,13 @@ forever_loop:
 # $v0 will contain the result of the function.
 #   
 FUNCTION_STRCMP:
+	addi $sp, $sp, -20		#Create stack space and save values
+    	sw $t0, 16($sp)
+    	sw $t1, 12($sp)
+    	sw $t2, 8($sp)
+    	sw $t3, 4($sp)
+    	sw $t4, 0($sp)
+    	
 	add $t0, $a0, $zero	#Store the address of the first word in $t0
 	add $t1, $a1, $zero	#Store the address of the second word in $t1
 	
@@ -237,13 +273,31 @@ null_reached:
 	beq $t4, $zero, set_zero
 	
 set_minus_one:
-	addi $v0, $zero, -1
+	addi $v0, $zero, -1      
+    	lw $t4, 0($sp)
+    	lw $t3, 4($sp)
+    	lw $t2, 8($sp)
+    	lw $t1, 12($sp)
+    	lw $t0, 16($sp)
+    	addi $sp, $sp, 20		#Restore values and fold up the stack
 	jr $ra
 set_positive_one:
 	addi $v0, $zero, 1
+	lw $t4, 0($sp)
+    	lw $t3, 4($sp)
+    	lw $t2, 8($sp)
+    	lw $t1, 12($sp)
+    	lw $t0, 16($sp)
+    	addi $sp, $sp, 20		#Restore values and fold up the stack
 	jr $ra
 set_zero:
-	addi $v0, $zero, 0				
+	addi $v0, $zero, 0
+	lw $t4, 0($sp)
+    	lw $t3, 4($sp)
+    	lw $t2, 8($sp)
+    	lw $t1, 12($sp)
+    	lw $t0, 16($sp)
+    	addi $sp, $sp, 20		#Restore values and fold up the stack				
    	jr $ra
    	
 #
