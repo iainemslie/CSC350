@@ -215,7 +215,7 @@ forever_loop:
     add $a0, $t3, $s0		# Pass the offset address of A[i] as argument
     mul $t4, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
     add $a1, $t4, $s0		# Pass the offset address of A[j] as argument
-    addi $a3, $zero, MAX_WORD_LEN
+    addi $a2, $zero, MAX_WORD_LEN
     jal FUNCTION_SWAP	# swap A[i] with A[j]
     
     j forever_loop
