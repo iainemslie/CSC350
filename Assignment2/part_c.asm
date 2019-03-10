@@ -198,18 +198,16 @@ FUNCTION_PARTITION:
     add $s7, $zero, $v0		# Save the allocated memory address
     add $t5, $zero, $s7		# Use this for incrementing dynamic pivot copy
     add $t6, $zero, $t0		# Use this for incrementing pivot address in static memory
-    
+      
     # Copy the value of pivot into the dynamic memory
-    
-    #Copy the contents of the second string into the memory of the first string
     copy_loop:
-    lbu $t7, 0($t6)		#Load the "i'th" byte of second word char in $t2
+    lbu $t7, 0($t6)		#Load the "i'th" byte of pivot char in $t2
     sb $t7, 0($t5)		#Store the i'th byte of second word in i'th byte of first word
     addi $t5, $t5, 1		#Increment the byte position in first word
-    addi $t6, $t6, 1		#Increment the byte position in the second word
+    addi $t6, $t6, 1		#Increment the byte position in pivot
     bne $t7, $zero, copy_loop	#Keep looping until the NULL char is reached
     
-    add $a0, $zero, $a0		# Restore the base address of the array into $a0
+    #add $a0, $zero, $s0		# Restore the base address of the array into $a0
     
     addi $t1, $a1, -1		# i = lo - 1
     addi $t2, $a2, 1		# j = hi + 1
@@ -306,11 +304,7 @@ done_quicksort:
     lw $a0, 24($sp)
     lw $ra, 28($sp)
     addi $sp, $sp, 32
-    jr $ra
-
-# Copy the value of the pivot into space on the stack
-
-FUNCTION_COPY_PIVOT:    
+    jr $ra  
 
 #
 # Solution for FUNCTION_STRCMP must appear below.
@@ -443,3 +437,4 @@ loop3:
     lw $ra, 16($sp)		# pop $ra
     addi $sp, $sp, 20		# Restore stack
     jr $ra
+    
