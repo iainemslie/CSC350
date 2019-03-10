@@ -13,8 +13,8 @@ int main(){
   print_array(arr1, arrsize);
   print_array(arr2, arrsize);    
 
-  quicksort(arr1, 0, arrsize);
-  quicksort(arr2, 0, arrsize);
+  quicksort(arr1, 0, arrsize-1);
+  quicksort(arr2, 0, arrsize-1);
   print_array(arr1, arrsize);
   print_array(arr2, arrsize);
 
