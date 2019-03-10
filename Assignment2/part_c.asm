@@ -255,8 +255,23 @@ FUNCTION_HOARE_QUICKSORT:
     sw $t1, 8($sp)
     sw $t2, 4($sp)
     sw $v0, 0($sp)
-
-    jal FUNCTION_PARTITION	    
+    
+    
+    add $t0, $zero, $a1		# $t0 gets lo
+    add $t1, $zero, $a2		# $t1 gets hi
+    
+    bge $t0, $t1, done_quicksort
+    
+    jal FUNCTION_PARTITION	
+    add $t2, $zero, $v0		# t2 is p
+    
+    add $a1, $zero, $t0		# Pass argument lo
+    add $a2, $zero, $t2    	# Pass argument p
+    jal FUNCTION_HOARE_QUICKSORT
+    
+    addi $a1, $t2, 1		# Pass argument p + 1
+    add $a2, $zero, $t1		# Pass argument hi
+    jal FUNCTION_HOARE_QUICKSORT
 
 
 done_quicksort:
