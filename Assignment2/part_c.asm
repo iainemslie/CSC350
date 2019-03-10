@@ -177,27 +177,50 @@ FUNCTION_PARTITION:
     sw $t2, 8($sp)
     sw $t3, 4($sp)
     sw $t4, 0($sp)
-    
-    
+         
     # pivot := A[(lo + hi) / 2]
     add $t0, $a1, $a2		# $t0 = lo + hi
     addi $t1, $zero, 2		# Let $t1 be 2
     div $t0, $t0, $t1		# (lo + hi) / 2
     mul $t0, $t0, MAX_WORD_LEN 	# A[(lo + hi) / 2]
     add $t0, $t0, $a0		# pivot : = A[(lo + hi) / 2]  #$t0 contains address of pivot
+ 
+    add $s0, $zero, $a0		# save the base address of the array into $s0   
+        
+    # Don't want the address of pivot want the value of pivot, the reason is that the pivot can change places and the reference
+    # Will be to the new value not the value of pivot
+
+    # Allocate Heap Memory to save the value of pivot
+    li $v0, 9
+    li $a0, MAX_WORD_LEN
+    syscall
     
-    add $s0, $zero, $a0		# save the base address of the array into $s0
+    add $s7, $zero, $v0		# Save the allocated memory address
+    add $t5, $zero, $s7		# Use this for incrementing dynamic pivot copy
+    add $t6, $zero, $t0		# Use this for incrementing pivot address in static memory
+    
+    # Copy the value of pivot into the dynamic memory
+    
+    #Copy the contents of the second string into the memory of the first string
+    copy_loop:
+    lbu $t7, 0($t6)		#Load the "i'th" byte of second word char in $t2
+    sb $t7, 0($t5)		#Store the i'th byte of second word in i'th byte of first word
+    addi $t5, $t5, 1		#Increment the byte position in first word
+    addi $t6, $t6, 1		#Increment the byte position in the second word
+    bne $t7, $zero, copy_loop	#Keep looping until the NULL char is reached
+    
+    add $a0, $zero, $a0		# Restore the base address of the array into $a0
     
     addi $t1, $a1, -1		# i = lo - 1
     addi $t2, $a2, 1		# j = hi + 1
-    
+
 forever_loop:
 
     while_loop1:
     	addi $t1, $t1, 1		# i = i + 1
     	mul $t3, $t1, MAX_WORD_LEN	# $t3 contains offset address of A[i]
         add $a0, $t3, $s0		# Pass the offset address of A[i] as argument
-        add $a1, $t0, $zero		# Pass the offset address of A[pivot] as argument
+        add $a1, $s7, $zero		# Pass the offset address of A[pivot] as argument
     	jal FUNCTION_STRCMP
     	blt $v0, $zero, while_loop1	# A[i] < pivot 
     	
@@ -205,7 +228,7 @@ forever_loop:
     	addi $t2, $t2, -1		# j = j - 1
     	mul $t4, $t2, MAX_WORD_LEN	# $t3 contains offset address of A[j]
     	add $a0, $t4, $s0		# Pass the offset address of A[j] as argument
-    	add $a1, $t0, $zero		# Pass the offset address of A[pivot] as argument
+    	add $a1, $s7, $zero		# Pass the offset address of A[pivot] as argument
         jal FUNCTION_STRCMP
         bgt $v0, $zero, while_loop2	# A[j] > pivot
         
@@ -244,7 +267,6 @@ forever_loop:
 #
 # THIS FUNCTION MUST BE WRITTEN IN A RECURSIVE STYLE.
 #
-
 FUNCTION_HOARE_QUICKSORT:
     addi $sp, $sp, -32	# Push values to the stack
     sw $ra, 28($sp)
@@ -257,21 +279,21 @@ FUNCTION_HOARE_QUICKSORT:
     sw $v0, 0($sp)
     
     
-    #add $t0, $zero, $a1		# $t0 gets lo
-    #add $t1, $zero, $a2		# $t1 gets hi
+    add $t0, $zero, $a1		# $t0 gets lo
+    add $t1, $zero, $a2		# $t1 gets hi
     
-    #bge $t0, $t1, done_quicksort
+    bge $t0, $t1, done_quicksort
     
     jal FUNCTION_PARTITION	
-    #add $t2, $zero, $v0		# t2 is p
+    add $t2, $zero, $v0		# t2 is p
     
-    #add $a1, $zero, $t0		# Pass argument lo
-    #add $a2, $zero, $t2    	# Pass argument p
-    #jal FUNCTION_HOARE_QUICKSORT
+    add $a1, $zero, $t0		# Pass argument lo
+    add $a2, $zero, $t2    	# Pass argument p
+    jal FUNCTION_HOARE_QUICKSORT
     
-    #addi $a1, $t2, 1		# Pass argument p + 1
-    #add $a2, $zero, $t1		# Pass argument hi
-    #jal FUNCTION_HOARE_QUICKSORT
+    addi $a1, $t2, 1		# Pass argument p + 1
+    add $a2, $zero, $t1		# Pass argument hi
+    jal FUNCTION_HOARE_QUICKSORT
 
 
 done_quicksort:
@@ -286,7 +308,9 @@ done_quicksort:
     addi $sp, $sp, 32
     jr $ra
 
-    
+# Copy the value of the pivot into space on the stack
+
+FUNCTION_COPY_PIVOT:    
 
 #
 # Solution for FUNCTION_STRCMP must appear below.
