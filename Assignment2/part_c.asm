@@ -164,19 +164,22 @@ EXIT_FPW:
 # $v0 contains the index that is to be returned by the
 #    partition algorithm
 #
-
 FUNCTION_PARTITION:
-    addi $sp, $sp, -40 	# Increase the size of the stack and push values
-    sw $ra, 36($sp)
-    sw $s0, 32($sp)
-    sw $a0, 28($sp)
-    sw $a1, 24($sp)
-    sw $a2, 20($sp)
-    sw $t0, 16($sp)
-    sw $t1, 12($sp)
-    sw $t2, 8($sp)
-    sw $t3, 4($sp)
-    sw $t4, 0($sp)
+    addi $sp, $sp, -56 	# Increase the size of the stack and push values
+    sw $ra, 52($sp)
+    sw $s0, 48($sp)
+    sw $a0, 44($sp)
+    sw $a1, 40($sp)
+    sw $a2, 36($sp)
+    sw $t0, 32($sp)
+    sw $t1, 28($sp)
+    sw $t2, 24($sp)
+    sw $t3, 20($sp)
+    sw $t4, 16($sp)
+    sw $t5, 12($sp)
+    sw $t6, 8($sp)
+    sw $t7, 4($sp)
+    sw $s7, 0($sp)
          
     # pivot := A[(lo + hi) / 2]
     add $t0, $a1, $a2		# $t0 = lo + hi
@@ -190,24 +193,20 @@ FUNCTION_PARTITION:
     # Don't want the address of pivot want the value of pivot, the reason is that the pivot can change places and the reference
     # Will be to the new value not the value of pivot
 
-    # Allocate Heap Memory to save the value of pivot
-    li $v0, 9
-    li $a0, MAX_WORD_LEN
-    syscall
+    # Allocate stack space to save the value of pivot
+    addi $sp, $sp, -MAX_WORD_LEN
     
-    add $s7, $zero, $v0		# Save the allocated memory address
+    add $s7, $zero, $sp		# Save the allocated memory address
     add $t5, $zero, $s7		# Use this for incrementing dynamic pivot copy
     add $t6, $zero, $t0		# Use this for incrementing pivot address in static memory
       
-    # Copy the value of pivot into the dynamic memory
+    # Copy the value of pivot into the stack memory
     copy_loop:
     lbu $t7, 0($t6)		#Load the "i'th" byte of pivot char in $t2
-    sb $t7, 0($t5)		#Store the i'th byte of second word in i'th byte of first word
-    addi $t5, $t5, 1		#Increment the byte position in first word
-    addi $t6, $t6, 1		#Increment the byte position in pivot
+    sb $t7, 0($t5)		#Store the i'th byte of pivot in i'th byte of stack space
+    addi $t5, $t5, 1		#Increment the byte position of pivot in memory
+    addi $t6, $t6, 1		#Increment the byte position of pivot in stack
     bne $t7, $zero, copy_loop	#Keep looping until the NULL char is reached
-    
-    #add $a0, $zero, $s0		# Restore the base address of the array into $a0
     
     addi $t1, $a1, -1		# i = lo - 1
     addi $t2, $a2, 1		# j = hi + 1
@@ -241,19 +240,24 @@ forever_loop:
     
     j forever_loop
         
- exit:   
-    add $v0, $zero, $t2
-    lw $t4, 0($sp)
-    lw $t3, 4($sp)
-    lw $t2, 8($sp)
-    lw $t1, 12($sp)
-    lw $t0, 16($sp)
-    lw $a2, 20($sp)
-    lw $a1, 24($sp)
-    lw $a0, 28($sp)
-    lw $s0, 32($sp)
-    lw $ra, 36($sp)
-    addi $sp, $sp, 40	# Decrease the stack and pop values
+exit:   
+    addi $sp, $sp, MAX_WORD_LEN 
+    add $v0, $zero, $t2	# Store the return value of the function in $v0
+    lw $s7, 0($sp)
+    lw $t7, 4($sp)
+    lw $t6, 8($sp)
+    lw $t5, 12($sp)
+    lw $t4, 16($sp)
+    lw $t3, 20($sp)
+    lw $t2, 24($sp)
+    lw $t1, 28($sp)
+    lw $t0, 32($sp)
+    lw $a2, 36($sp)
+    lw $a1, 40($sp)
+    lw $a0, 44($sp)
+    lw $s0, 48($sp)
+    lw $ra, 52($sp)
+    addi $sp, $sp, 56	# Decrease the stack and pop values
     jr $ra
 	
 	
